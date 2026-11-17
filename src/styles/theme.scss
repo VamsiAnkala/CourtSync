@@ -23,51 +23,26 @@ body {
   min-height: 100dvh;
   font-family: var(--font-sans);
   color: var(--color-ink);
-  background: var(--color-canvas);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
-  position: relative;
   overflow-x: hidden;
-
-  // Soft aurora that drifts behind the whole app.
-  &::before,
-  &::after {
-    content: '';
-    position: fixed;
-    z-index: -1;
-    width: 70vmax;
-    height: 70vmax;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.55;
-    pointer-events: none;
-  }
-  &::before {
-    top: -35vmax;
-    left: -25vmax;
-    background: radial-gradient(circle, #a7f3d0 0%, transparent 65%);
-    animation: aurora-a 22s ease-in-out infinite alternate;
-  }
-  &::after {
-    bottom: -40vmax;
-    right: -30vmax;
-    background: radial-gradient(circle, #bae6fd 0%, transparent 65%);
-    animation: aurora-b 26s ease-in-out infinite alternate;
-  }
+  // Static aurora: painted once, no blur filters or animated layers.
+  background:
+    radial-gradient(60vmax 60vmax at 0% 0%, rgb(167 243 208 / 0.55), transparent 70%),
+    radial-gradient(60vmax 60vmax at 100% 100%, rgb(186 230 253 / 0.55), transparent 70%),
+    var(--color-canvas);
+  background-attachment: fixed;
 }
 
 h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
 
 ::selection { background: #a7f3d0; color: #064e3b; }
 
-@keyframes aurora-a { to { transform: translate(14vmax, 10vmax) scale(1.15); } }
-@keyframes aurora-b { to { transform: translate(-12vmax, -8vmax) scale(1.1); } }
 @keyframes rise { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
-@keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-10px) rotate(3deg); } }
 @keyframes shimmer { to { background-position: -200% 0; } }
-@keyframes ping-ring { 0% { box-shadow: 0 0 0 0 rgb(52 211 153 / 0.55); } 100% { box-shadow: 0 0 0 10px rgb(52 211 153 / 0); } }
+@keyframes ping-ring { from { transform: scale(1); opacity: 0.7; } to { transform: scale(2.6); opacity: 0; } }
 @keyframes shine { to { transform: translateX(120%) skewX(-18deg); } }
 @keyframes slide-down { from { opacity: 0; transform: translateY(-8px); max-height: 0; } to { opacity: 1; transform: none; max-height: 40rem; } }
 
@@ -104,14 +79,10 @@ h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0
     position: relative;
     border-radius: 1.5rem;
     padding: 1.25rem;
-    background: var(--glass);
-    -webkit-backdrop-filter: blur(14px) saturate(1.4);
-    backdrop-filter: blur(14px) saturate(1.4);
+    background: rgb(255 255 255 / 0.88);
     border: 1px solid var(--glass-edge);
     box-shadow: var(--shadow-md);
-    animation: rise 0.55s $ease-out both;
-    transition: transform 0.35s $ease-out, box-shadow 0.35s $ease-out;
-    &:hover { box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 18px 36px -12px rgb(15 23 42 / 0.2); }
+    animation: rise 0.45s $ease-out both;
   }
 
   .hero {
@@ -140,7 +111,6 @@ h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0
       background: url($court-lines) center / contain no-repeat;
       opacity: 0.14;
       transform: rotate(-8deg);
-      animation: float 9s ease-in-out infinite;
     }
     // Glow orb
     &::after {
@@ -167,13 +137,21 @@ h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0
   }
 
   .live-dot {
+    position: relative;
     display: inline-block;
     width: 0.5rem;
     height: 0.5rem;
     margin-right: 0.4rem;
     border-radius: 50%;
     background: #6ee7b7;
-    animation: ping-ring 1.8s ease-out infinite;
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: #6ee7b7;
+      animation: ping-ring 1.8s ease-out infinite;
+    }
   }
 
   // ---------- court meter ----------
@@ -287,14 +265,24 @@ h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0
 
   // ---------- form controls ----------
   .input {
+    display: block;
     width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    box-sizing: border-box;
     padding: 0.7rem 0.95rem;
     border-radius: 0.95rem;
     font-size: 0.875rem;
+    line-height: 1.25rem;
     background: rgb(255 255 255 / 0.85);
     border: 1px solid rgb(226 232 240);
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.25s, background 0.2s, transform 0.25s $ease-out;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: border-color 0.2s, box-shadow 0.25s, background 0.2s;
+    &[type='date'] { text-align: left; }
+    &[type='date']::-webkit-date-and-time-value { text-align: left; margin: 0; }
+    &[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
     &::placeholder { color: #94a3b8; }
     &:hover { border-color: #cbd5e1; }
     &:focus {
@@ -380,9 +368,7 @@ h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0
     overflow-x: auto;
     scrollbar-width: none;
     border-radius: 1.2rem;
-    background: var(--glass);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
+    background: rgb(255 255 255 / 0.92);
     border: 1px solid var(--glass-edge);
     box-shadow: var(--shadow-sm);
     &::-webkit-scrollbar { display: none; }
@@ -417,9 +403,7 @@ h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0
     > div {
       padding: 0.45rem;
       border-radius: 1.4rem;
-      background: rgb(255 255 255 / 0.8);
-      -webkit-backdrop-filter: blur(18px) saturate(1.5);
-      backdrop-filter: blur(18px) saturate(1.5);
+      background: rgb(255 255 255 / 0.96);
       border: 1px solid var(--glass-edge);
       box-shadow: 0 16px 40px -12px rgb(15 23 42 / 0.28);
     }
@@ -475,11 +459,7 @@ h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0
   summary { transition: color 0.2s; &:hover { color: #047857; } }
 }
 
-// ---------- route transitions (View Transitions API) ----------
-::view-transition-old(root) { animation: 0.18s ease-in both fade-out; }
-::view-transition-new(root) { animation: 0.4s $ease-out 0.05s both rise; }
-@keyframes fade-out { to { opacity: 0; transform: translateY(-6px); } }
-
+// ---------- accessibility ----------
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -488,5 +468,4 @@ h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

@@ -10,8 +10,8 @@ import { Group, Player, Session, Vote } from '../../core/models';
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="card mb-4 flex flex-wrap items-end gap-3">
-      <div>
+    <div class="card mb-4 grid grid-cols-[1fr_auto] items-end gap-3">
+      <div class="min-w-0">
         <label class="label" for="sd">Session date</label>
         <input id="sd" type="date" class="input" [ngModel]="date()" (ngModelChange)="date.set($event)" />
       </div>
@@ -19,7 +19,7 @@ import { Group, Player, Session, Vote } from '../../core/models';
         <button class="btn-primary" [disabled]="busy()" (click)="createSession()">Create session</button>
       }
       @if (session(); as s) {
-        <span class="chip" [class]="s.status === 'COMPLETED' ? 'bg-brand-100 text-brand-700' : s.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'">{{ s.status }}</span>
+        <span class="chip h-11 px-4" [class]="s.status === 'COMPLETED' ? 'bg-brand-100 text-brand-700' : s.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'">{{ s.status }}</span>
       }
     </div>
 
@@ -63,7 +63,7 @@ import { Group, Player, Session, Vote } from '../../core/models';
             <div class="flex items-center justify-between px-4 py-2.5 text-sm">
               <div>
                 <span class="font-medium">{{ p.name }}</span>
-                <span class="chip ml-2" [class]="p.tier === 'MEMBER' ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-600'">{{ p.tier === 'MEMBER' ? 'Member' : 'Drop-in' }}</span>
+                @if (p.tier === 'MEMBER') { <span class="chip ml-2 bg-brand-100 text-brand-700">Member</span> }
                 @if (feeOf(p.id) > 0) { <span class="ml-2 text-xs text-muted">{{ formatINR(feeOf(p.id)) }}</span> }
               </div>
               <div class="flex gap-1">

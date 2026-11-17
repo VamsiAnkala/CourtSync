@@ -29,8 +29,6 @@ import { hue, initials } from '../core/ui';
               <p class="text-sm font-semibold">{{ me()!.name }}</p>
               @if (me()!.tier === 'MEMBER') {
                 <p class="text-xs opacity-80">Membership {{ me()!.membership_valid_until ? 'valid until ' + me()!.membership_valid_until : 'not active' }}</p>
-              } @else {
-                <p class="text-xs opacity-80">Drop-in player</p>
               }
             </div>
           </div>

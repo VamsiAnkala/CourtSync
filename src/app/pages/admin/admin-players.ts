@@ -46,13 +46,13 @@ import { Group, Player } from '../../core/models';
                 <p class="text-xs text-muted">
                   @if (p.tier === 'MEMBER') {
                     {{ memberActive(p) ? 'Member until ' + p.membership_valid_until : 'Membership expired ' + (p.membership_valid_until ?? '') }}
-                  } @else { Drop-in }
-                  @if (phones()[p.id]) { · {{ phones()[p.id] }} }
+                  }
+                  @if (phones()[p.id]) { @if (p.tier === 'MEMBER') { · } {{ phones()[p.id] }} }
                 </p>
               </div>
               <div class="flex gap-1.5">
                 <button class="btn-ghost !px-3 !py-1.5 !text-xs" (click)="renew(p)">{{ p.tier === 'MEMBER' ? 'Renew' : 'Make member' }}</button>
-                @if (p.tier === 'MEMBER') { <button class="btn-ghost !px-3 !py-1.5 !text-xs" (click)="patch(p, { tier: 'DROP_IN' })">To drop-in</button> }
+                @if (p.tier === 'MEMBER') { <button class="btn-ghost !px-3 !py-1.5 !text-xs" (click)="patch(p, { tier: 'DROP_IN' })">Remove member</button> }
                 <button class="btn-danger !px-3 !py-1.5 !text-xs" (click)="patch(p, { status: 'INACTIVE' })">Remove</button>
               </div>
             </div>

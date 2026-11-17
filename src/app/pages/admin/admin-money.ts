@@ -15,16 +15,16 @@ const CATEGORY_LABEL: Record<ExpenseCategory, string> = {
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="card mb-4 flex flex-wrap items-end gap-3">
-      <div>
+    <div class="card mb-4 grid grid-cols-2 items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
+      <div class="min-w-0">
         <label class="label" for="f">From</label>
         <input id="f" type="date" class="input" [ngModel]="from()" (ngModelChange)="from.set($event)" />
       </div>
-      <div>
+      <div class="min-w-0">
         <label class="label" for="t">To</label>
         <input id="t" type="date" class="input" [ngModel]="to()" (ngModelChange)="to.set($event)" />
       </div>
-      <button class="btn-ghost" (click)="exportCsv()">Export CSV</button>
+      <button class="btn-ghost col-span-2 sm:col-span-1" (click)="exportCsv()">Export CSV</button>
     </div>
 
     @if (error()) { <p class="mb-3 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{{ error() }}</p> }

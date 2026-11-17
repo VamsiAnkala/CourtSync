@@ -39,14 +39,14 @@ import { hue, initials } from '../core/ui';
                 <button class="pick" [style.--i]="i" (click)="claim(p)">
                   <span class="avatar" [style.--h]="hue(p.name)">{{ initials(p.name) }}</span>
                   <span class="flex-1">{{ p.name }}</span>
-                  <span class="chip" [class]="p.tier === 'MEMBER' ? 'bg-brand-100 text-brand-700' : 'bg-slate-200 text-slate-600'">
-                    {{ p.tier === 'MEMBER' ? 'Member' : 'Drop-in' }}
-                  </span>
+                  @if (p.tier === 'MEMBER') {
+                    <span class="chip bg-brand-100 text-brand-700">Member</span>
+                  }
                 </button>
               }
             </div>
             <div class="mt-5 border-t border-slate-100 pt-4">
-              <h3 class="mb-2 text-sm font-semibold">Not on the list? Register as a drop-in</h3>
+              <h3 class="mb-2 text-sm font-semibold">Not on the list? Register</h3>
               <label class="label" for="rn">Name</label>
               <input id="rn" class="input mb-2" [value]="newName()" (input)="newName.set($any($event.target).value)" />
               <label class="label" for="rp">Phone</label>
@@ -279,12 +279,13 @@ export class TodayPage implements OnDestroy {
   private async refresh() {
     const s = this.session();
     if (!s) return;
-    const [votes, players, sessions] = await Promise.all([
-      this.api.getVotes(s.id), this.api.getPlayers(s.group_id), this.api.todaySession(this.slug()).catch(() => s),
+    const [votes, session] = await Promise.all([
+      this.api.getVotes(s.id), this.api.todaySession(this.slug()).catch(() => s),
     ]);
     this.votes.set(votes);
-    this.players.set(players);
-    this.session.set(sessions);
+    this.session.set(session);
+    const known = this.playerMap();
+    if (votes.some((v) => !known.has(v.player_id))) this.players.set(await this.api.getPlayers(s.group_id));
   }
 
   async claim(p: Player) {
