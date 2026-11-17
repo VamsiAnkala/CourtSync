@@ -128,8 +128,10 @@ export class MockApiService {
   async myPlayerId() { return localStorage.getItem('mock_player'); }
   async claimPlayer(playerId: string) { localStorage.setItem('mock_player', playerId); }
   async registerPlayer(_slug: string, name: string, phone: string) {
-    const p: Player = { id: id(), group_id: 'g1', name: name.trim(), tier: 'DROP_IN', membership_valid_until: null, status: 'PENDING' };
-    this.players.push(p);
+    const existing = this.players.find((x) => x.name.toLowerCase() === name.trim().toLowerCase());
+    if (existing?.status === 'ACTIVE') throw new Error('that name is already on the list, pick it from the list above');
+    const p: Player = existing ?? { id: id(), group_id: 'g1', name: name.trim(), tier: 'DROP_IN', membership_valid_until: null, status: 'PENDING' };
+    if (existing) existing.status = 'PENDING'; else this.players.push(p);
     if (phone) this.phones[p.id] = phone;
     localStorage.setItem('mock_player', p.id);
     return p.id;
@@ -222,6 +224,15 @@ export class MockApiService {
   async completeSession(sessionId: string, courts: number | null, extraCost: number | null) {
     this.completeInternal(sessionId, courts, extraCost);
     this.notify();
+  }
+  async purgeRemovedPlayers(_groupId: string): Promise<number> {
+    const keep = (p: Player) => this.paymentsList.some((x) => x.player_id === p.id)
+      || this.votes.some((v) => v.player_id === p.id && v.fee_applied > 0);
+    const gone = this.players.filter((p) => p.status === 'INACTIVE' && !keep(p)).map((p) => p.id);
+    this.players = this.players.filter((p) => !gone.includes(p.id));
+    this.votes = this.votes.filter((v) => !gone.includes(v.player_id));
+    gone.forEach((pid) => delete this.phones[pid]);
+    return gone.length;
   }
   async updatePlayer(pid: string, patch: Partial<Player>) { Object.assign(this.players.find((p) => p.id === pid)!, patch); }
   async addPlayer(_groupId: string, name: string, phone: string) {

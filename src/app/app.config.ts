@@ -1,5 +1,5 @@
 import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { environment } from '../environment';
 import { ApiService } from './core/api.service';
@@ -10,7 +10,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     ...(environment.useMock ? [{ provide: ApiService, useExisting: MockApiService }] : []),
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',

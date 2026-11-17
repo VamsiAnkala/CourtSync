@@ -135,6 +135,10 @@ export class ApiService {
       p_session_id: sessionId, p_courts_booked: courts, p_extra_court_cost: extraCost,
     }));
   }
+  async purgeRemovedPlayers(groupId: string): Promise<number> {
+    const c = await this.db();
+    return unwrap(await c.rpc('admin_purge_removed_players', { p_group_id: groupId })) as number;
+  }
   async updatePlayer(id: string, patch: Partial<Player>) {
     const c = await this.db();
     const rows = unwrap(await c.from('players').update(patch).eq('id', id).select('id'));

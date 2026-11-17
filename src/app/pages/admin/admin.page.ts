@@ -18,30 +18,35 @@ type Tab = 'session' | 'money' | 'dues' | 'players' | 'history' | 'settings';
   imports: [FormsModule, RouterLink, AdminSessionTab, AdminMoneyTab, AdminDuesTab, AdminPlayersTab, AdminHistoryTab, AdminSettingsTab],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="mx-auto min-h-dvh max-w-3xl px-4 pb-16 pt-6">
-      <a class="text-sm text-brand-700" [routerLink]="['/g', slug(), 'today']">← Today</a>
+    <main class="page-enter mx-auto min-h-dvh max-w-3xl px-4 pb-16 pt-6">
+      <a class="back-link" [routerLink]="['/g', slug(), 'today']">← Today</a>
       @if (loading()) {
-        <p class="mt-20 text-center text-muted">Loading…</p>
+        <div class="mt-6 space-y-4" aria-busy="true"><div class="skeleton h-10 w-1/2"></div><div class="skeleton h-40"></div></div>
       } @else if (!group()) {
         <p class="mt-20 text-center text-muted">{{ error() || 'Group not found' }}</p>
       } @else if (!isAdmin()) {
-        <section class="card mx-auto mt-16 max-w-sm">
-          <h1 class="text-lg font-bold">Admin access</h1>
-          <p class="mb-4 text-sm text-muted">{{ group()!.name }}</p>
-          <label class="label" for="pin">Admin PIN</label>
-          <input id="pin" type="password" class="input mb-3" [(ngModel)]="pin" (keyup.enter)="login()" autocomplete="current-password" />
-          @if (error()) { <p class="mb-3 text-sm text-rose-600">{{ error() }}</p> }
+        <section class="card mx-auto mt-14 max-w-sm text-center">
+          <span class="logo mx-auto mb-3 !h-14 !w-14 !rounded-2xl" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </span>
+          <h1 class="text-xl font-extrabold">Admin access</h1>
+          <p class="mb-5 text-sm text-muted">{{ group()!.name }}</p>
+          <div class="text-left">
+            <label class="label" for="pin">Admin PIN</label>
+            <input id="pin" type="password" class="input mb-3" [(ngModel)]="pin" (keyup.enter)="login()" autocomplete="current-password" />
+          </div>
+          @if (error()) { <p class="alert error mb-3 text-left">{{ error() }}</p> }
           <button class="btn-primary w-full" [disabled]="!pin || busy()" (click)="login()">Unlock</button>
         </section>
       } @else {
-        <h1 class="mb-4 mt-2 text-xl font-bold">{{ group()!.name }} · Admin</h1>
-        <nav class="mb-5 flex gap-1 overflow-x-auto rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/70">
+        <p class="eyebrow mt-3">Admin</p>
+        <h1 class="mb-4 text-2xl font-extrabold">{{ group()!.name }}</h1>
+        <nav class="tabs mb-5">
           @for (t of tabs; track t.id) {
-            <button class="whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-medium transition"
-                    [class]="tab() === t.id ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'"
-                    (click)="tab.set(t.id)">{{ t.label }}</button>
+            <button class="tab" [class.active]="tab() === t.id" (click)="tab.set(t.id)">{{ t.label }}</button>
           }
         </nav>
+        <div class="tab-body" [attr.data-tab]="tab()">
         @switch (tab()) {
           @case ('session') { <app-admin-session [group]="group()!" /> }
           @case ('money') { <app-admin-money [group]="group()!" /> }
@@ -50,6 +55,7 @@ type Tab = 'session' | 'money' | 'dues' | 'players' | 'history' | 'settings';
           @case ('history') { <app-admin-history [group]="group()!" /> }
           @case ('settings') { <app-admin-settings [group]="group()!" (saved)="group.set($event)" /> }
         }
+        </div>
       }
     </main>
   `,

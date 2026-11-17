@@ -72,9 +72,19 @@ import { Group, Player } from '../../core/models';
       </div>
     </div>
 
+    @if (notice()) { <p class="mt-4 rounded-xl bg-slate-100 p-3 text-xs text-muted">{{ notice() }}</p> }
     @if (inactive().length) {
       <details class="mt-4 text-sm">
         <summary class="cursor-pointer text-muted">Removed players ({{ inactive().length }})</summary>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          @if (confirmPurge()) {
+            <span class="text-xs text-muted">Permanently delete removed players?</span>
+            <button class="btn-danger !px-3 !py-1.5 !text-xs" [disabled]="busy()" (click)="purge()">Yes, delete</button>
+            <button class="btn-ghost !px-3 !py-1.5 !text-xs" (click)="confirmPurge.set(false)">Cancel</button>
+          } @else {
+            <button class="btn-danger !px-3 !py-1.5 !text-xs" (click)="confirmPurge.set(true)">Clear all removed</button>
+          }
+        </div>
         @for (p of inactive(); track p.id) {
           <div class="flex items-center justify-between py-1.5"><span>{{ p.name }}</span>
             <button class="btn-ghost !px-3 !py-1.5 !text-xs" (click)="patch(p, { status: 'ACTIVE' })">Restore</button></div>
@@ -91,6 +101,8 @@ export class AdminPlayersTab {
   readonly busy = signal(false);
   readonly error = signal('');
   readonly renewing = signal<Player | null>(null);
+  readonly confirmPurge = signal(false);
+  readonly notice = signal('');
   renewAmount = 0;
   renewStart = '';
   renewEnd = '';
@@ -123,6 +135,16 @@ export class AdminPlayersTab {
   }
 
   patch(p: Player, patch: Partial<Player>) { return this.run(() => this.api.updatePlayer(p.id, patch)); }
+
+  purge() {
+    return this.run(async () => {
+      const before = this.inactive().length;
+      const deleted = await this.api.purgeRemovedPlayers(this.group().id);
+      this.confirmPurge.set(false);
+      const kept = before - deleted;
+      this.notice.set(`Deleted ${deleted}.` + (kept > 0 ? ` ${kept} kept because they have payments or charged games.` : ''));
+    });
+  }
 
   add() {
     return this.run(async () => {
