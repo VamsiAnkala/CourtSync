@@ -30,10 +30,13 @@ import { hue, initials } from '../core/ui';
           <a class="btn-ghost !px-3.5 !py-2" [routerLink]="['/g', slug(), 'me']">History</a>
         </header>
 
-        @if (!me()) {
+        @if (!me() || switching()) {
           <section class="card">
             <h2 class="text-lg font-bold">Who are you?</h2>
             <p class="mb-4 text-sm text-muted">Pick your name once. This device will remember you.</p>
+            @if (switching()) {
+              <button class="btn-ghost mb-3 w-full" (click)="switching.set(false)">Cancel, stay as {{ me()?.name }}</button>
+            }
             <div class="max-h-72 space-y-2 overflow-y-auto pr-1">
               @for (p of activePlayers(); track p.id; let i = $index) {
                 <button class="pick" [style.--i]="i" (click)="claim(p)">
@@ -89,6 +92,11 @@ import { hue, initials } from '../core/ui';
               <p class="mt-4 rounded-xl bg-white/15 px-3 py-2 text-xs font-medium">Court 1 is full. The next player triggers Court 2.</p>
             }
           </section>
+
+          <p class="mt-3 text-center text-xs text-muted">
+            Playing as <span class="font-semibold text-slate-700">{{ p.name }}</span> ·
+            <button class="font-semibold text-brand-700 underline underline-offset-2" (click)="error.set(''); switching.set(true)">Not you? Switch</button>
+          </p>
 
           @if (p.status === 'PENDING') {
             <div class="alert warn mt-4 text-center">Your registration is awaiting admin approval. You'll be able to vote once approved.</div>
@@ -191,6 +199,7 @@ export class TodayPage implements OnDestroy {
   readonly error = signal('');
   readonly busy = signal(false);
   readonly copied = signal(false);
+  readonly switching = signal(false);
   readonly group = signal<Group | null>(null);
   readonly players = signal<Player[]>([]);
   readonly session = signal<Session | null>(null);
@@ -289,7 +298,7 @@ export class TodayPage implements OnDestroy {
   }
 
   async claim(p: Player) {
-    await this.run(async () => { await this.api.claimPlayer(p.id); this.myId.set(p.id); });
+    await this.run(async () => { await this.api.claimPlayer(p.id); this.myId.set(p.id); this.switching.set(false); });
   }
 
   async register() {
@@ -297,6 +306,7 @@ export class TodayPage implements OnDestroy {
       const id = await this.api.registerPlayer(this.slug(), this.newName(), this.newPhone());
       this.players.set(await this.api.getPlayers(this.group()!.id));
       this.myId.set(id);
+      this.switching.set(false);
     });
   }
 
