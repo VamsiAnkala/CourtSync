@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { errMsg } from '../../core/dates';
 import { Group } from '../../core/models';
+import { ThemeToggle } from '../../core/theme-toggle';
 import { AdminSessionTab } from './admin-session';
 import { AdminMoneyTab } from './admin-money';
 import { AdminDuesTab } from './admin-dues';
@@ -15,11 +16,14 @@ type Tab = 'session' | 'money' | 'dues' | 'players' | 'history' | 'settings';
 
 @Component({
   selector: 'app-admin',
-  imports: [FormsModule, RouterLink, AdminSessionTab, AdminMoneyTab, AdminDuesTab, AdminPlayersTab, AdminHistoryTab, AdminSettingsTab],
+  imports: [FormsModule, RouterLink, ThemeToggle, AdminSessionTab, AdminMoneyTab, AdminDuesTab, AdminPlayersTab, AdminHistoryTab, AdminSettingsTab],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="page-enter mx-auto min-h-dvh max-w-3xl px-4 pb-16 pt-6">
-      <a class="back-link" [routerLink]="['/g', slug(), 'today']">← Today</a>
+      <div class="flex items-center justify-between gap-3">
+        <a class="back-link" [routerLink]="['/g', slug(), 'today']">← Today</a>
+        <app-theme-toggle />
+      </div>
       @if (loading()) {
         <div class="mt-6 space-y-4" aria-busy="true"><div class="skeleton h-10 w-1/2"></div><div class="skeleton h-40"></div></div>
       } @else if (!group()) {

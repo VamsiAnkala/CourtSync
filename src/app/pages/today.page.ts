@@ -6,10 +6,11 @@ import { errMsg, prettyDate } from '../core/dates';
 import { Group, Player, Session, Vote } from '../core/models';
 import { formatRoster, whatsappShareUrl } from '../core/whatsapp';
 import { hue, initials } from '../core/ui';
+import { ThemeToggle } from '../core/theme-toggle';
 
 @Component({
   selector: 'app-today',
-  imports: [RouterLink],
+  imports: [RouterLink, ThemeToggle],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="page-enter mx-auto min-h-dvh max-w-md px-4 pb-32 pt-6">
@@ -27,7 +28,10 @@ import { hue, initials } from '../core/ui';
       } @else if (group(); as g) {
         <header class="mb-5 flex items-center justify-between gap-3">
           <h1 class="text-xl font-extrabold leading-tight">{{ g.name }}</h1>
-          <a class="btn-ghost !px-3.5 !py-2" [routerLink]="['/g', slug(), 'me']">History</a>
+          <div class="flex items-center gap-2">
+            <app-theme-toggle />
+            <a class="btn-ghost !px-3.5 !py-2" [routerLink]="['/g', slug(), 'me']">History</a>
+          </div>
         </header>
 
         @if (!me() || switching()) {

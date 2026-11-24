@@ -5,14 +5,18 @@ import { formatINR } from '../core/court-logic';
 import { errMsg, prettyDate } from '../core/dates';
 import { Group, LedgerPayment, Player, Session, Vote } from '../core/models';
 import { hue, initials } from '../core/ui';
+import { ThemeToggle } from '../core/theme-toggle';
 
 @Component({
   selector: 'app-my-ledger',
-  imports: [RouterLink],
+  imports: [RouterLink, ThemeToggle],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="page-enter mx-auto min-h-dvh max-w-md px-4 pb-16 pt-6">
-      <a class="back-link" [routerLink]="['/g', slug(), 'today']">← Back to today</a>
+      <div class="flex items-center justify-between gap-3">
+        <a class="back-link" [routerLink]="['/g', slug(), 'today']">← Back to today</a>
+        <app-theme-toggle />
+      </div>
       <h1 class="mb-4 mt-2 text-2xl font-extrabold">History</h1>
 
       @if (loading()) {
