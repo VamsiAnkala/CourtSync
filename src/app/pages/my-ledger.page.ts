@@ -6,6 +6,7 @@ import { errMsg, prettyDate } from '../core/dates';
 import { Group, LedgerPayment, Player, Session, Vote } from '../core/models';
 import { hue, initials } from '../core/ui';
 import { ThemeToggle } from '../core/theme-toggle';
+import { hideBoot } from '../core/boot';
 
 @Component({
   selector: 'app-my-ledger',
@@ -130,6 +131,7 @@ export class MyLedgerPage {
       this.error.set(errMsg(e));
     } finally {
       this.loading.set(false);
+      hideBoot();
     }
   }
 }

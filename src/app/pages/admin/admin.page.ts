@@ -5,6 +5,7 @@ import { ApiService } from '../../core/api.service';
 import { errMsg } from '../../core/dates';
 import { Group } from '../../core/models';
 import { ThemeToggle } from '../../core/theme-toggle';
+import { hideBoot } from '../../core/boot';
 import { AdminSessionTab } from './admin-session';
 import { AdminMoneyTab } from './admin-money';
 import { AdminDuesTab } from './admin-dues';
@@ -100,6 +101,7 @@ export class AdminPage {
       this.error.set(errMsg(e));
     } finally {
       this.loading.set(false);
+      hideBoot();
     }
   }
 

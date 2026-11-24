@@ -7,6 +7,7 @@ import { Group, Player, Session, Vote } from '../core/models';
 import { formatRoster, whatsappShareUrl } from '../core/whatsapp';
 import { hue, initials } from '../core/ui';
 import { ThemeToggle } from '../core/theme-toggle';
+import { hideBoot } from '../core/boot';
 
 @Component({
   selector: 'app-today',
@@ -268,24 +269,30 @@ export class TodayPage implements OnDestroy {
     this.fatal.set('');
     this.unwatch?.();
     try {
-      const g = await this.api.getGroup(this.slug());
+      const slug = this.slug();
+      const sessionResult = this.api.todaySession(slug).then(
+        (session) => ({ session, err: '' }),
+        (e) => ({ session: null, err: errMsg(e) }),
+      );
+      const [g, myId, { session, err }] = await Promise.all([this.api.getGroup(slug), this.api.myPlayerId(), sessionResult]);
       if (!g) { this.fatal.set('Group not found'); return; }
       this.group.set(g);
-      const [players, myId] = await Promise.all([this.api.getPlayers(g.id), this.api.myPlayerId()]);
-      this.players.set(players);
       this.myId.set(myId);
-      const session = await this.api.todaySession(this.slug()).catch((e) => {
-        this.fatal.set(errMsg(e) === 'no session today' ? 'No game scheduled today.' : errMsg(e));
-        return null;
-      });
-      if (!session) return;
+      if (!session) {
+        this.fatal.set(err === 'no session today' ? 'No game scheduled today.' : err);
+        this.players.set(await this.api.getPlayers(g.id));
+        return;
+      }
+      const [players, votes] = await Promise.all([this.api.getPlayers(g.id), this.api.getVotes(session.id)]);
+      this.players.set(players);
       this.session.set(session);
-      this.votes.set(await this.api.getVotes(session.id));
+      this.votes.set(votes);
       this.unwatch = this.api.watchSession(session.id, () => void this.refresh());
     } catch (e) {
       this.fatal.set(errMsg(e));
     } finally {
       this.loading.set(false);
+      hideBoot();
     }
   }
 
