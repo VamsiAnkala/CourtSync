@@ -34,8 +34,12 @@ import { Expense, Group, Player, Session, Vote } from '../../core/models';
               </div>
             }
           </div>
-        } @empty { <p class="p-4 text-sm text-muted">No sessions in the last 90 days.</p> }
+        } @empty { <p class="p-4 text-sm text-muted">No sessions in the last {{ days() }} days.</p> }
       </div>
+    </div>
+    <div class="mt-3 flex items-center justify-between gap-3 text-xs text-muted">
+      <span>Showing the last {{ days() }} days</span>
+      <button class="btn-ghost !px-3.5 !py-2" (click)="loadOlder()">Load older</button>
     </div>
   `,
 })
@@ -48,14 +52,20 @@ export class AdminHistoryTab {
   readonly votes = signal<Vote[]>([]);
   readonly dayExpenses = signal<Expense[]>([]);
   readonly error = signal('');
+  readonly days = signal(90);
   readonly formatINR = formatINR;
   readonly prettyDate = prettyDate;
 
   readonly playerMap = computed(() => new Map(this.players().map((p) => [p.id, p])));
   readonly inVotes = computed(() => this.votes().filter((v) => v.vote_status === 'IN'));
-  readonly members = computed(() => this.inVotes().filter((v) => this.playerMap().get(v.player_id)?.tier === 'MEMBER').length);
+  readonly openDate = computed(() => this.sessions().find((s) => s.id === this.open())?.session_date ?? '');
+  readonly members = computed(() => {
+    const date = this.openDate();
+    const pm = this.playerMap();
+    return this.inVotes().filter((v) => { const p = pm.get(v.player_id); return !!p && isMembershipActive(p, date); }).length;
+  });
   readonly alloc = computed(() => {
-    const date = this.sessions().find((s) => s.id === this.open())?.session_date ?? '';
+    const date = this.openDate();
     const pm = this.playerMap();
     return allocate(
       this.inVotes(), this.group().players_per_court, this.group().max_courts,
@@ -64,7 +74,7 @@ export class AdminHistoryTab {
   });
 
   constructor() {
-    effect(() => { this.group(); void this.load(); });
+    effect(() => { this.group(); this.days.set(90); void this.load(); });
   }
 
   nameOf(id: string) { return this.playerMap().get(id)?.name ?? 'Unknown'; }
@@ -72,11 +82,16 @@ export class AdminHistoryTab {
   private async load() {
     try {
       const [sessions, players] = await Promise.all([
-        this.api.listSessions(this.group().id, addDays(todayIso(), -90), todayIso()), this.api.getPlayers(this.group().id),
+        this.api.listSessions(this.group().id, addDays(todayIso(), -this.days()), todayIso()), this.api.getPlayers(this.group().id),
       ]);
       this.sessions.set(sessions);
       this.players.set(players);
     } catch (e) { this.error.set(errMsg(e)); }
+  }
+
+  async loadOlder() {
+    this.days.update((d) => d + 90);
+    await this.load();
   }
 
   async toggle(s: Session) {

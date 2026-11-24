@@ -323,7 +323,10 @@ export class TodayPage implements OnDestroy {
   }
 
   nameOf(id: string) { return this.playerMap().get(id)?.name ?? 'Unknown'; }
-  isMember(id: string) { return this.playerMap().get(id)?.tier === 'MEMBER'; }
+  isMember(id: string) {
+    const p = this.playerMap().get(id);
+    return !!p && isMembershipActive(p, this.session()?.session_date ?? '');
+  }
 
   private async run(fn: () => Promise<void>) {
     this.busy.set(true);
